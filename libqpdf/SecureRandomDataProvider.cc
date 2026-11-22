@@ -2,6 +2,9 @@
 
 #include <qpdf/QUtil.hh>
 #include <qpdf/qpdf-config.h>
+#ifdef __wasi__
+# include <unistd.h>
+#endif
 #ifdef _WIN32
 # define WIN32_LEAN_AND_MEAN
 # include <direct.h>
@@ -88,6 +91,16 @@ SecureRandomDataProvider::provideRandomData(unsigned char* data, size_t len)
         throw std::runtime_error("unable to generate secure random data");
     }
 
+# elif defined(__wasi__)
+    // WASI exposes no /dev; use getentropy(), backed by the host's wasi random_get.
+    size_t off = 0;
+    while (off < len) {
+        size_t chunk = (len - off > 256) ? 256 : (len - off);
+        if (getentropy(data + off, chunk) != 0) {
+            throw std::runtime_error("getentropy failed to generate random data");
+        }
+        off += chunk;
+    }
 # else
     static std::unique_ptr<QUtil::FileCloser> random_device = []() {
         FILE* f = fopen("/dev/urandom", "rb");

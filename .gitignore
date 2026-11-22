@@ -16,3 +16,8 @@ Doxyfile
 # macOS junk files
 .DS_Store
 ._*
+
+# monocp WASI (wasm32-wasip2) cross-build artifacts
+/build-wasi/
+/deps/wasi/
+/deps/src/

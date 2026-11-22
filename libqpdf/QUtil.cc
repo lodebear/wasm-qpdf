@@ -889,7 +889,9 @@ QUtil::get_current_qpdf_time()
 #else
     struct tm ltime;
     time_t now = time(nullptr);
+#ifndef __wasi__
     tzset();
+#endif
 # ifdef HAVE_LOCALTIME_R
     localtime_r(&now, &ltime);
 # else
